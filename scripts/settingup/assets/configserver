@@ -1,0 +1,30 @@
+#!/bin/bash
+# Source function library.
+. /etc/init.d/functions
+
+#chkconfig: 2345  90 10
+# Check that networking is configured.
+
+start() {
+        cd /opt/configs
+        python -m SimpleHTTPServer 8080  >/dev/null &
+}
+
+stop() {
+        lsof -i :8080| grep python | awk '{print $2}'| xargs kill -9 && echo "server killed"
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop}"
+    rc=3
+    ;;
+esac
+
+exit $rc
