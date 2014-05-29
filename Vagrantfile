@@ -83,28 +83,30 @@ Vagrant::Config.run do |config|
     config.vm.network :hostonly, "192.168.50.4"
 end
 
-
 #Tasks, provision on start up, setting up the dev env for project
-if TASK == "dev"
+def dev
   Vagrant::Config.run do |config|
       config.vm.provision :shell, :inline => "curl #{SET_UP_SCRIPT_URL} | bash"
       config.vm.provision :shell, :inline => "apt-get install -y #{HTTP_WRAPPER}"
       config.vm.provision :shell, :inline => "[ -d /etc/nginx/ssl ] || mkdir -p /etc/nginx/ssl; cd /etc/nginx/ssl && wget #{CONIFIG_PATH}/ssl/server.{crt,key}"
       config.vm.provision "docker" , :version => "latest" if not SERVICES.empty?
+      config.vm.provision :shell, :inline => 'echo "DOCKER_OPTS=\"-e lxc\"" > /etc/default/docker'
   end
 end
 
 
-if TASK == "config"
+def config
   Vagrant::Config.run do |config|
-    SERVICES.each do |service|
-      config.vm.provision :shell, :inline => "cd /etc/nginx/conf.d && curl -O #{CONIFIG_PATH}/#{service}.conf"
-    end
+    config.vm.provision :shell, :inline => "cd /etc/nginx/conf.d; rm -f *.conf"
+      SERVICES.each do |service|
+        config.vm.provision :shell, :inline => "cd /etc/nginx/conf.d && curl -O #{CONIFIG_PATH}/#{service}.conf"
+      end
     config.vm.provision :shell, :inline => "service nginx restart"
   end
 end
 
-if TASK == "docker"
+
+def docker
   Vagrant::Config.run do |config|
     config.vm.provision :shell, :inline => "containerID=`docker ps -a | awk '{if (NR != 1) {print $1;}}'`; for i in $containerID; do docker stop $i && docker rm $i; done"
     SERVICES.each do |service_name|
@@ -114,11 +116,16 @@ if TASK == "docker"
   end
 end
 
-if TASK == "update"
-   Vagrant::Config.run do |config|
-     #update apps/services inside vm
-     SERVICES.each do |package_name|
-       config.vm.provision :shell, :inline => "containerID=`docker ps -a --no-trunc | awk '{if (NR != 1) {print $1;}}'`; for id in $containerID; lxc-attach -n $id 'yum install -y #{package_name}'; done"
-     end
-   end
+def update
+  Vagrant::Config.run do |config|
+    #update apps/services inside vm
+    package_names = ["my-property-api"]
+    package_names.each do |package_name|
+      config.vm.provision :shell, :inline => "containerID=`docker ps -a --no-trunc | grep #{package_name} | awk '{print $1;}'`; echo 'yum install -y #{package_name} --enablerepo=rea-el6-dev' | sudo lxc-attach -n $containerID"
+    end
+  end
+end
+
+TASKS.each do |task|
+  send(task)
 end
