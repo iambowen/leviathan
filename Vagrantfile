@@ -9,10 +9,10 @@ BOX_URI = ENV['BOX_URI'] || "http://cloud-images.ubuntu.com/vagrant/trusty/curre
 SSH_PRIVKEY_PATH = ENV["SSH_PRIVKEY_PATH"]
 
 #Tasks: task management here
-TASK=ENV["TASK"] || "dev"
+TASKS=ENV["TASKS"] || ["dev"]
+
 
 #project related
-TEAM=ENV["TEAM"] || 'leviathan'
 PROJECT_NAME=Dir.pwd.split('/').last || "leviathan"
 
 #HTTP wrapper, you can use nginx/apache/varnish or whatever
@@ -33,7 +33,7 @@ SET_UP_SCRIPT_URL = "#{DEV_ENV_SCRIPTS_PATH}/#{DEV_ENV_FOR}/setup.sh"
 CONTAINER_START_SCRIPT_URL="#{DEV_ENV_SCRIPTS_PATH}"
 
 #Services
-SERVICES=ENV["SERVICES"] || ["mpp-api", "services"]
+SERVICES=ENV["SERVICES"] || ["app", "services"]
 
 
 
@@ -90,6 +90,7 @@ def dev
       config.vm.provision :shell, :inline => "apt-get install -y #{HTTP_WRAPPER}"
       config.vm.provision :shell, :inline => "[ -d /etc/nginx/ssl ] || mkdir -p /etc/nginx/ssl; cd /etc/nginx/ssl && wget #{CONIFIG_PATH}/ssl/server.{crt,key}"
       config.vm.provision "docker" , :version => "latest" if not SERVICES.empty?
+      config.vm.provision :shell, :inline => "apt-get install lxc -y"
       config.vm.provision :shell, :inline => 'echo "DOCKER_OPTS=\"-e lxc\"" > /etc/default/docker'
   end
 end
@@ -119,9 +120,8 @@ end
 def update
   Vagrant::Config.run do |config|
     #update apps/services inside vm
-    package_names = ["my-property-api"]
-    package_names.each do |package_name|
-      config.vm.provision :shell, :inline => "containerID=`docker ps -a --no-trunc | grep #{package_name} | awk '{print $1;}'`; echo 'yum install -y #{package_name} --enablerepo=rea-el6-dev' | sudo lxc-attach -n $containerID"
+    SERVICES.each do |package_name|
+      config.vm.provision :shell, :inline => "containerID=`docker ps -a --no-trunc | grep #{package_name} | awk '{print $1;}'`; echo 'yum install -y #{package_name}' | sudo lxc-attach -n $containerID"
     end
   end
 end
