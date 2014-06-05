@@ -39,7 +39,7 @@ Create a new config server, and put sync every configs in the project to config 
 In this example we use the ```leviathan.example.com:8080```
 
 ###Tasks in Vagrant
-- ```TASK=dev vagrant provision```: set up development env in the vm  
-- ```TASK=docker vagrant provision```: provision docker and pull services from registry
-- ```TASK=config vagrant provision```: pull nginx config from config server
-- ```TASK=update vagrant provision```: update the apps/services in dockers
+- ```TASKS="dev" vagrant provision```: set up development env in the vm  
+- ```TASKS="docker" vagrant provision```: provision docker and pull services from registry
+- ```TASKS="config" vagrant provision```: pull nginx config from config server
+- ```TASKS="update" vagrant provision```: update the apps/services in dockers
