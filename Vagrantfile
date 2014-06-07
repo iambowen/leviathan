@@ -9,7 +9,7 @@ BOX_URI = ENV['BOX_URI'] || "http://cloud-images.ubuntu.com/vagrant/trusty/curre
 SSH_PRIVKEY_PATH = ENV["SSH_PRIVKEY_PATH"]
 
 #Tasks: task management here
-TASKS=ENV["TASKS"] || ["dev"]
+TASKS = !ENV["TASKS"].nil? && ENV["TASKS"].split(" ")  || ["dev"]
 
 
 #project related
