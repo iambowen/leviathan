@@ -15,7 +15,7 @@ Share the similar philosophy with docker.
 3. services are pulled from docker registry and run as container in the vm.
 
 ###Rough structure
-![alt text](need an image herer)
+![alt text](https://dl.dropboxusercontent.com/u/92660221/images/Screen%20Shot%202014-07-30%20at%2012.53.05%20AM.png)
 
 
 ###Requirements
